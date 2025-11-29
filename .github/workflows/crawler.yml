@@ -109,3 +109,18 @@ jobs:
           
           echo "❌ Failed to push after 5 attempts"
           exit 1
+          
+      # 新增：主动触发 GitHub Pages 构建
+      - name: Trigger GitHub Pages rebuild
+        if: success()  # 仅前面步骤成功时执行
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 无需手动创建，GitHub 自动生成
+          REPO: ${{ github.repository }}
+        run: |
+          echo "🔄 Triggering Pages rebuild for $REPO..."
+          # 调用 GitHub API 触发 Pages 构建
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/$REPO/pages/builds" \
+            || echo "⚠️ Pages rebuild trigger failed (may be non-critical)"
